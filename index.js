@@ -5,27 +5,55 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
-const world = new Array(20).fill(66).map(() => new Array(20).fill(66));
+const Datastore = require('nedb');
+const db = new Datastore({ filename: 'db.json' });
 
-app.use(express.static(path.join(__dirname, '/public/')));
+var currentWorld;
+
+function setup() {
+    db.loadDatabase((err) => {
+        if (err)
+            console.error(err);
+    });
+    db.findOne({}, (err, doc) => {
+        if (err) {
+            console.error('Find error ' + err);
+        }
+        else {
+            if(!doc){
+                currentWorld = new Array(20).fill(66).map(() => new Array(20).fill(66));
+                saveWorld();
+            }
+            currentWorld = doc;
+        }
+    });
+}
+
+function saveWorld() {
+    db.update({ _id: currentWorld._id }, { world: currentWorld.world }, {}, (err) => {
+        if(err)
+            console.error('Error saving world: ' + err);
+    });
+}
 
 function updateState() {
+    saveWorld();
     const update = {
-        world
+        currentWorld
     };
     io.emit('update', update);
 }
 
 function tileUpdate(update) {
-    world[update.y][update.x] = update.tileId;
+    currentWorld.world[update.y][update.x] = update.tileId;
     updateState();
 }
 
+setup();
+
+app.use(express.static(path.join(__dirname, '/public/')));
+
 io.on('connection', (socket) => {
-    console.log('a user connected');
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
-    });
     socket.on('clientConnect', updateState);
     socket.on('changeTile', tileUpdate);
 });
