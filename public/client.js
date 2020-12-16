@@ -44,7 +44,7 @@ function setup() {
 
 function getTileAt(screenX, screenY) {
     let xStrides = (screenX - camPos.x) / currXOffset.x;
-    let yStrides = (screenY - camPos.y) / currXOffset.y;
+    let yStrides = (screenY - camPos.y + tileHeight) / currXOffset.y;
 
     let tileY = (yStrides - xStrides) / 2;
     let tileX = xStrides + tileY;
@@ -73,6 +73,7 @@ function drawTile(tileId, worldX, worldY) {
         tint(200, 0, 0);
     }
     image(tileAssets[tileId], -(tileWidth * zoom) / 2, (tileHeight * zoom) / 2 - tileAssets[tileId].height * zoom, tileAssets[tileId].width * zoom, tileAssets[tileId].height * zoom);
+    // Draw dot on each tile
     if (debug){
         noStroke();
         fill(255);
@@ -136,16 +137,6 @@ function drawDebug() {
     ellipse(0, 0, 10);
 }
 
-// // eslint-disable-next-line no-unused-vars
-// function mouseWheel(event) {
-//     selection += (event.delta > 0) ? 1 : -1;
-//     if (selection < 0)
-//         selection = tileAssets.length - 1;
-//     if (selection >= tileAssets.length)
-//         selection = 0;
-//     return false;
-// }
-
 // eslint-disable-next-line no-unused-vars
 function mouseWheel(event) {
     let amount = (event.delta > 0) ? -0.1 : 0.1;
@@ -202,4 +193,17 @@ function setTile(x, y, tileId) {
 function mouseClicked() {
     if (mouseOver)
         setTile(mouseOver.x, mouseOver.y, selection);
+}
+
+// eslint-disable-next-line no-unused-vars
+function keyPressed() {
+    if (keyCode === 219)
+        --selection;
+    if (keyCode === 221)
+        ++selection;
+    if (selection < 0)
+        selection = tileAssets.length - 1;
+    if (selection >= tileAssets.length)
+        selection = 0;
+    return false;
 }
