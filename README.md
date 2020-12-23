@@ -12,9 +12,10 @@ This is an isometric game designed to be run in the browser, it uses a [node](ht
 - [x] Send update request
 - [x] Save / Load maps
 - [x] Zoom camera
+- [ ] Wait until fully loaded
 - [ ] Toolbar / UI overlay
 - [ ] Game logic
-    - [ ] Tile Connections
+    - [x] Tile metadata in json
     - [ ] Player characters
     - [ ] Non-player characters
     - [ ] AI ?

@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 const socket = io();
-const noAssets = 128;
 const tileAssets = [];
 const movementSpeed = 5;
 const tileWidth = 128;
@@ -9,25 +8,24 @@ let mouseOver = null;
 let camPos;
 let xOffset;
 let yOffset;
-let currXOffset;
-let currYOffset;
-let world = null;
+let world;
 let selection = 0;
-let debug = true;
+let debug = false;
 let zoom = 1;
+let toolbar;
 
 // Socket connection
 socket.on('update', update => {
-    world = update.currentWorld.world;
+    world.update(update.currentWorld.world);
 });
 
 // eslint-disable-next-line no-unused-vars
 function preload() {
-    for (let i = 0; i < noAssets; ++i) {
-        let num = '' + i;
-        let tileid = num.length >= 3 ? num : new Array(3 - num.length + 1).join('0') + num;
-        tileAssets.push(loadImage(`assets/PNG/cityTiles_${tileid}.png`));
-    }
+    loadJSON('/assets/tiles.json', tiles => {
+        for (tile of tiles) {
+            tileAssets.push(loadImage(tile.path));
+        }
+    });
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -37,19 +35,18 @@ function setup() {
     camPos = createVector(width / 2, height /2);
     xOffset = createVector(tileWidth / 2, tileHeight / 2);
     yOffset = createVector(-tileWidth / 2, tileHeight / 2);
-    currXOffset = xOffset.copy();
-    currYOffset = yOffset.copy();
-    rectMode(CENTER);
+    toolbar = new Toolbar(80, tileAssets);
+    world = new World(xOffset, yOffset, tileWidth, tileHeight, tileAssets);
 }
 
 function getTileAt(screenX, screenY) {
-    let xStrides = (screenX - camPos.x) / currXOffset.x;
-    let yStrides = (screenY - camPos.y + tileHeight) / currXOffset.y;
+    let xStrides = (screenX - camPos.x) / world.currXOffset.x;
+    let yStrides = (screenY - camPos.y + (tileHeight * zoom)) / world.currXOffset.y;
 
     let tileY = (yStrides - xStrides) / 2;
     let tileX = xStrides + tileY;
 
-    if (tileX < 0 || tileX > world[0].length || tileY < 0 || tileY >= world.length)
+    if (tileX < 0 || tileX > world.world[0].length || tileY < 0 || tileY >= world.world.length)
         return null;
 
     return {
@@ -58,70 +55,18 @@ function getTileAt(screenX, screenY) {
     };
 }
 
-function getScreenPos(worldX, worldY) {
-    let x = p5.Vector.mult(currXOffset, worldX);
-    let y = p5.Vector.mult(currYOffset, worldY);
-    return p5.Vector.add(x, y);
-}
 
 
-function drawTile(tileId, worldX, worldY) {
-    let loc = getScreenPos(worldX, worldY);
+function drawDebugInfo() {
     push();
-    translate(loc.x, loc.y);
-    if (mouseOver && worldX === mouseOver.x && worldY === mouseOver.y) {
-        tint(200, 0, 0);
-    }
-    image(tileAssets[tileId], -(tileWidth * zoom) / 2, (tileHeight * zoom) / 2 - tileAssets[tileId].height * zoom, tileAssets[tileId].width * zoom, tileAssets[tileId].height * zoom);
-    // Draw dot on each tile
-    if (debug){
-        noStroke();
-        fill(255);
-        if (mouseOver && worldX === mouseOver.x && worldY === mouseOver.y) {
-            fill('red');
-        }
-        ellipse(0, 0, 10);
-    }
-    pop();
-}
-
-function drawWorld() {
-    push();
-    translate(camPos.x, camPos.y);
-    // TODO: Only draw tiles on screen
-    for (let y = 0; y < world[0].length; y++) {
-        for (let x = 0; x < world.length; x++) {
-            drawTile(world[x][y], y, x);
-        }
-    }
-    pop();
-}
-
-function drawDebugToolbar() {
-    push();
-    fill(0);
-    textSize(24);
-    text(`x: ${mouseX} y: ${mouseY} pos: (${mouseOver ? mouseOver.x + ',' + mouseOver.y : null}), zoom: ${zoom}
-    cam x: ${camPos.x}, cam y: ${camPos.y}`, 300, 0);
-    translate(0,0);
-    pop();
-}
-
-// Toolbar overlay
-function drawToolbar() {
-    push();
-    translate(width / 2, height - 30);
-    noStroke();
-    fill(255, 255, 255, 125);
-    rect(0, 0, width, 60);
-    translate(-width / 2, 0);
-    image(tileAssets[selection], 0, 0, tileWidth / 2, tileHeight / 2);
-    if(debug)
-        drawDebugToolbar();
+    textSize(16);
+    fill(255);
+    text(`x: ${mouseX} y: ${mouseY} pos: (${mouseOver ? mouseOver.x + ',' + mouseOver.y : null}), zoom: ${zoom} cam x: ${camPos.x}, cam y: ${camPos.y}`, 20, 20, 200, 200);
     pop();
 }
 
 function drawDebug() {
+    push();
     // Grid
     stroke(0);
     for (let i = 0; i < width; i+=100) {
@@ -135,6 +80,7 @@ function drawDebug() {
     fill('yellow');
     translate(camPos.x, camPos.y);
     ellipse(0, 0, 10);
+    pop();
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -142,8 +88,8 @@ function mouseWheel(event) {
     let amount = (event.delta > 0) ? -0.1 : 0.1;
     if(zoom + amount >= 0.5 && zoom + amount <= 3) {
         zoom += amount;
-        currXOffset = p5.Vector.mult(xOffset, zoom);
-        currYOffset = p5.Vector.mult(yOffset, zoom);
+        world.currXOffset = p5.Vector.mult(xOffset, zoom);
+        world.currYOffset = p5.Vector.mult(yOffset, zoom);
     }
     return false;    
 }
@@ -151,12 +97,14 @@ function mouseWheel(event) {
 // eslint-disable-next-line no-unused-vars
 function draw() {
     background(51);
-    if (world) {
-        drawWorld();
-        drawToolbar();
+    if (world && world.loaded) {
+        world.drawWorld(camPos.x, camPos.y, zoom, mouseOver, debug);
+        toolbar.draw();
         keyDown();
-        if(debug)
+        if(debug){
             drawDebug();
+            drawDebugInfo();
+        }
     }
 }
 
@@ -176,7 +124,7 @@ function keyDown() {
 
 // eslint-disable-next-line no-unused-vars
 function mouseMoved() {
-    if (world) {
+    if (world && world.loaded) {
         mouseOver = getTileAt(mouseX, mouseY);
     }
 }
@@ -191,19 +139,23 @@ function setTile(x, y, tileId) {
 
 // eslint-disable-next-line no-unused-vars
 function mouseClicked() {
-    if (mouseOver)
-        setTile(mouseOver.x, mouseOver.y, selection);
+    if (mouseY > height - toolbar.toolbarHeight) {
+        toolbar.select(mouseX, mouseY + toolbar.toolbarHeight - height);
+    }
+    else if (mouseOver)
+        setTile(mouseOver.x, mouseOver.y, toolbar.getSelectionId());
 }
 
 // eslint-disable-next-line no-unused-vars
 function keyPressed() {
+    if (keyCode === 114)
+        debug = !debug;
     if (keyCode === 219)
-        --selection;
+        toolbar.prevSelection();
     if (keyCode === 221)
-        ++selection;
+        toolbar.nextSelection();
     if (selection < 0)
         selection = tileAssets.length - 1;
     if (selection >= tileAssets.length)
         selection = 0;
-    return false;
 }
