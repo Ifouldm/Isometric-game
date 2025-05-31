@@ -1,6 +1,6 @@
-// eslint-disable-next-line no-unused-vars
-class World {
-    constructor(xOffset, yOffset, tileWidth, tileHeight, tileAssets){
+/* global p5 */
+export default class World {
+    constructor(xOffset, yOffset, tileWidth, tileHeight, tileAssets) {
         this.currXOffset = xOffset.copy();
         this.currYOffset = yOffset.copy();
         this.tileWidth = tileWidth;
@@ -40,9 +40,16 @@ class World {
         if (mouseOver && worldX === mouseOver.x && worldY === mouseOver.y) {
             tint(200, 0, 0);
         }
-        image(this.tileAssets[tileId], -(this.tileWidth * zoom) / 2, (this.tileHeight * zoom) / 2 - this.tileAssets[tileId].height * zoom, this.tileAssets[tileId].width * zoom, this.tileAssets[tileId].height * zoom);
+        image(
+            this.tileAssets[tileId],
+            -(this.tileWidth * zoom) / 2,
+            (this.tileHeight * zoom) / 2 -
+                this.tileAssets[tileId].height * zoom,
+            this.tileAssets[tileId].width * zoom,
+            this.tileAssets[tileId].height * zoom
+        );
         // Draw dot on each tile
-        if (debug){
+        if (debug) {
             noStroke();
             fill(255);
             if (mouseOver && worldX === mouseOver.x && worldY === mouseOver.y) {

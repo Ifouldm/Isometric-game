@@ -1,32 +1,34 @@
 // eslint-disable-next-line no-unused-vars
-class Toolbar {
-    constructor(toolbarHeight, tileAssets) {
+export default class Toolbar {
+    constructor(toolbarHeight, inventory) {
         this.toolbarHeight = toolbarHeight;
         this.selection = 0;
-        this.inventory = [];
-        this.spacing  = 10;
-        this.itemSize = this.toolbarHeight - (this.spacing);
+        this.inventory = inventory;
+        this.spacing = 10;
+        this.itemSize = this.toolbarHeight - this.spacing;
         this.qtySize = 20;
         this.icons = 9;
-        for (let i = 0; i < this.icons; i++) {
-            this.inventory[i] = {
-                id: i,
-                asset: tileAssets[i],
-                quantity: floor(random(1,64))
-            };
-        }
+        this.linkedInventory = [1, 2, 3, 5, 12, 14, 15, 16, 44];
     }
 
-    getSelectionId() {
-        return this.inventory[this.selection].id;
+    getSelectedItem() {
+        return this.inventory.getItemBySlot(
+            this.linkedInventory[this.selection]
+        );
+    }
+
+    getItem(slot) {
+        return this.inventory.getItemBySlot(this.linkedInventory[slot]);
     }
 
     prevSelection() {
-        this.selection = this.selection > 0 ? this.selection-1 : this.icons - 1;
+        this.selection =
+            this.selection > 0 ? this.selection - 1 : this.icons - 1;
     }
 
     nextSelection() {
-        this.selection = this.selection < this.icons - 1 ? this.selection+1 : 0;
+        this.selection =
+            this.selection < this.icons - 1 ? this.selection + 1 : 0;
     }
 
     draw() {
@@ -37,24 +39,38 @@ class Toolbar {
         rect(0, 0, width, 80);
 
         translate(this.spacing * 0.5, this.spacing * 0.5);
-        for (let i = 0; i < this.inventory.length; i++) {
-            let item = this.inventory[i];
+        for (let i = 0; i < this.linkedInventory.length; i++) {
+            let item = this.getItem(i);
             push();
             translate(i * (this.itemSize + this.spacing), 0);
             if (i === this.selection) {
                 fill('blue');
-                rect(-2, -2 , this.itemSize + 4, this.itemSize + 4, 16);
+                rect(-2, -2, this.itemSize + 4, this.itemSize + 4, 16);
             }
             fill(255);
-            rect(0, 0 , this.itemSize, this.itemSize, 14);
-            image(item.asset, 5, 5, this.itemSize - 10, this.itemSize - 10);
-            fill(125);
-            ellipse(this.itemSize - this.qtySize * 0.5, this.itemSize - this.qtySize * 0.5, this.qtySize);
-            fill(255);
-            textAlign(CENTER, CENTER);
-            text(item.quantity, this.itemSize - this.qtySize, this.itemSize - this.qtySize, this.qtySize, this.qtySize);
+            rect(0, 0, this.itemSize, this.itemSize, 14);
+            if (!item) {
+                rect(5, 5, this.itemSize - 10, this.itemSize - 10);
+            } else {
+                image(item.asset, 5, 5, this.itemSize - 10, this.itemSize - 10);
+                fill(125);
+                ellipse(
+                    this.itemSize - this.qtySize * 0.5,
+                    this.itemSize - this.qtySize * 0.5,
+                    this.qtySize
+                );
+                fill(255);
+                textAlign(CENTER, CENTER);
+                text(
+                    item.quantity,
+                    this.itemSize - this.qtySize,
+                    this.itemSize - this.qtySize,
+                    this.qtySize,
+                    this.qtySize
+                );
+            }
             pop();
-        }    
+        }
         pop();
     }
 
