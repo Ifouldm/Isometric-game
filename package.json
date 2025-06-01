@@ -8,7 +8,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "nodemonConfig": {
-    "ignore": ["db.json"]
+    "ignore": [
+      "db.json"
+    ]
   },
   "repository": {
     "type": "git",
@@ -21,10 +23,14 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-p5js": "^1.0.1",
     "eslint-plugin-import": "^2.22.1",
-    "nodemon": "^2.0.6"
+    "nodemon": "^2.0.6",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-middleware": "^7.4.2"
   },
   "dependencies": {
     "express": "^4.17.1",
+    "html-webpack-plugin": "^5.6.3",
     "nedb": "^1.8.0",
     "p5": "^1.1.9",
     "socket.io": "^3.0.4"

@@ -104,14 +104,6 @@ export default class Inventory {
         this.height = height - 200;
         this.spacing = 10;
         this.itemSize = Math.floor(this.width / 9) - this.spacing;
-        console.log(
-            'width',
-            this.width,
-            'height',
-            this.height,
-            'itemSize',
-            this.itemSize
-        );
         this.qtySize = 20;
         this.icons = 9;
     }

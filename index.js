@@ -8,20 +8,33 @@ const io = require('socket.io')(http);
 const Datastore = require('nedb');
 const db = new Datastore({ filename: 'db.json' });
 
+const webpack = require('webpack');
+const webpackDevMiddleware = require('webpack-dev-middleware');
+const config = require('./webpack.config.js');
+const compiler = webpack(config);
+
 var currentWorld;
+
+// Tell express to use the webpack-dev-middleware and use the webpack.config.js
+// configuration file as a base.
+app.use(
+    webpackDevMiddleware(compiler, {
+        publicPath: config.output.publicPath,
+    })
+);
 
 function setup() {
     db.loadDatabase((err) => {
-        if (err)
-            console.error(err);
+        if (err) console.error(err);
     });
     db.findOne({}, (err, doc) => {
         if (err) {
             console.error('Find error ' + err);
-        }
-        else {
-            if(!doc){
-                currentWorld = new Array(20).fill(66).map(() => new Array(20).fill(66));
+        } else {
+            if (!doc) {
+                currentWorld = new Array(20)
+                    .fill(66)
+                    .map(() => new Array(20).fill(66));
                 saveWorld();
             }
             currentWorld = doc;
@@ -30,16 +43,20 @@ function setup() {
 }
 
 function saveWorld() {
-    db.update({ _id: currentWorld._id }, { world: currentWorld.world }, {}, (err) => {
-        if(err)
-            console.error('Error saving world: ' + err);
-    });
+    db.update(
+        { _id: currentWorld._id },
+        { world: currentWorld.world },
+        {},
+        (err) => {
+            if (err) console.error('Error saving world: ' + err);
+        }
+    );
 }
 
 function updateState() {
     saveWorld();
     const update = {
-        currentWorld
+        currentWorld,
     };
     io.emit('update', update);
 }

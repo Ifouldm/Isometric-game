@@ -2,6 +2,8 @@
 import World from './world.js';
 import Inventory from './inventory.js';
 import Toolbar from './toolbar.js';
+import { io } from './socket.io.js';
+import p5 from './p5.min.js';
 
 const socket = io();
 const tileAssets = [];
