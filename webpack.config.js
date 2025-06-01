@@ -14,7 +14,7 @@ module.exports = {
     plugins: [
         new webpack.ProvidePlugin({
             p5: 'p5',
-            io: ['socket.io-client', 'io'],
+            io: 'socket.io-client',
         }),
         new HtmlWebpackPlugin({
             title: 'Development',

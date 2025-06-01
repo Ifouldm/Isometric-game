@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 export default class Toolbar {
-    constructor(toolbarHeight, inventory) {
+    constructor(toolbarHeight, inventory, tileAssets) {
+        this.tileAssets = tileAssets;
         this.toolbarHeight = toolbarHeight;
         this.selection = 0;
         this.inventory = inventory;
@@ -41,6 +42,7 @@ export default class Toolbar {
         translate(this.spacing * 0.5, this.spacing * 0.5);
         for (let i = 0; i < this.linkedInventory.length; i++) {
             let item = this.getItem(i);
+
             push();
             translate(i * (this.itemSize + this.spacing), 0);
             if (i === this.selection) {
@@ -49,10 +51,16 @@ export default class Toolbar {
             }
             fill(255);
             rect(0, 0, this.itemSize, this.itemSize, 14);
-            if (!item) {
+            if (!item || item.id > this.tileAssets.length) {
                 rect(5, 5, this.itemSize - 10, this.itemSize - 10);
             } else {
-                image(item.asset, 5, 5, this.itemSize - 10, this.itemSize - 10);
+                image(
+                    this.tileAssets[item.id],
+                    5,
+                    5,
+                    this.itemSize - 10,
+                    this.itemSize - 10
+                );
                 fill(125);
                 ellipse(
                     this.itemSize - this.qtySize * 0.5,

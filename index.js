@@ -13,7 +13,12 @@ const webpackDevMiddleware = require('webpack-dev-middleware');
 const config = require('./webpack.config.js');
 const compiler = webpack(config);
 
-var currentWorld;
+let worldID = '';
+let currentWorld;
+let p1Iventory;
+let p2Iventory;
+let p3Iventory;
+let p4Iventory;
 
 // Tell express to use the webpack-dev-middleware and use the webpack.config.js
 // configuration file as a base.
@@ -32,20 +37,48 @@ function setup() {
             console.error('Find error ' + err);
         } else {
             if (!doc) {
-                currentWorld = new Array(20)
-                    .fill(66)
-                    .map(() => new Array(20).fill(66));
-                saveWorld();
+                createNewWorld();
+            } else {
+                worldID = doc._id;
+                currentWorld = doc.world;
+                p1Iventory = doc.p1Iventory || [];
+                p2Iventory = doc.p2Iventory || [];
+                p3Iventory = doc.p3Iventory || [];
+                p4Iventory = doc.p4Iventory || [];
             }
-            currentWorld = doc;
         }
     });
 }
 
+function createNewWorld() {
+    db.insert(
+        {
+            world: new Array(20).fill(66).map(() => new Array(20).fill(66)),
+            p1Iventory: [],
+            p2Iventory: [],
+            p3Iventory: [],
+            p4Iventory: [],
+        },
+        (err, newDoc) => {
+            if (err) console.error('Error saving world: ' + err);
+            if (newDoc) {
+                worldID = newDoc._id;
+                console.log('New world created with ID: ' + worldID);
+            }
+        }
+    );
+}
+
 function saveWorld() {
     db.update(
-        { _id: currentWorld._id },
-        { world: currentWorld.world },
+        { _id: worldID },
+        {
+            world: currentWorld,
+            p1Iventory,
+            p2Iventory,
+            p3Iventory,
+            p4Iventory,
+        },
         {},
         (err) => {
             if (err) console.error('Error saving world: ' + err);
@@ -57,12 +90,36 @@ function updateState() {
     saveWorld();
     const update = {
         currentWorld,
+        p1Iventory,
+        p2Iventory,
+        p3Iventory,
+        p4Iventory,
     };
     io.emit('update', update);
 }
 
+function playerInvUse(playerNo, slot) {
+    switch (playerNo) {
+        case 1:
+            p1Iventory.find((record) => record.slot === slot).quantity--;
+            break;
+        case 2:
+            p1Iventory.find((record) => record.slot === slot).quantity--;
+            break;
+        case 3:
+            p1Iventory.find((record) => record.slot === slot).quantity--;
+            break;
+        case 4:
+            p1Iventory.find((record) => record.slot === slot).quantity--;
+            break;
+        default:
+            console.error('Invalid player number');
+    }
+}
+
 function tileUpdate(update) {
-    currentWorld.world[update.y][update.x] = update.tileId;
+    currentWorld[update.y][update.x] = update.tileId;
+    playerInvUse(update.playerNo, update.slot);
     updateState();
 }
 

@@ -3,10 +3,8 @@ import World from './world.js';
 import Inventory from './inventory.js';
 import Debug from './debug.js';
 import Toolbar from './toolbar.js';
-import { io } from './socket.io.js';
-//import p5 from './p5.min.js';
 
-const socket = io();
+const socket = io.io();
 const tileAssets = [];
 const movementSpeed = 5;
 const tileWidth = 128;
@@ -20,10 +18,12 @@ let zoom = 1;
 let inventory;
 let toolbar;
 let debug;
+let playerNo = 1;
 
 // Socket connection
 socket.on('update', (update) => {
-    world.update(update.currentWorld.world);
+    world.update(update.currentWorld);
+    inventory.update(update.p1Iventory);
 });
 
 // eslint-disable-next-line no-unused-vars
@@ -43,7 +43,7 @@ function setup() {
     xOffset = createVector(tileWidth / 2, tileHeight / 2);
     yOffset = createVector(-tileWidth / 2, tileHeight / 2);
     inventory = new Inventory(tileAssets);
-    toolbar = new Toolbar(80, inventory);
+    toolbar = new Toolbar(80, inventory, tileAssets);
     debug = new Debug();
     world = new World(xOffset, yOffset, tileWidth, tileHeight, tileAssets);
 }
@@ -124,6 +124,8 @@ function setTile(x, y, tileId) {
         x,
         y,
         tileId,
+        playerNo,
+        slot: toolbar.getSelectedItem().slot,
     });
 }
 

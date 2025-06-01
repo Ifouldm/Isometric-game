@@ -2,103 +2,7 @@
 export default class Inventory {
     constructor(tileAssets) {
         this.tileAssets = tileAssets;
-        this.items = [
-            {
-                id: 0,
-                asset: tileAssets[0],
-                quantity: 4,
-            },
-            {
-                id: 1,
-                asset: tileAssets[1],
-                quantity: 3,
-            },
-            {
-                id: 2,
-                asset: tileAssets[2],
-                quantity: 54,
-            },
-            {
-                id: 3,
-                asset: tileAssets[3],
-                quantity: 12,
-            },
-            {
-                id: 4,
-                asset: tileAssets[4],
-                quantity: 18,
-            },
-            {
-                id: 5,
-                asset: tileAssets[5],
-                quantity: 4,
-            },
-            {
-                id: 6,
-                asset: tileAssets[6],
-                quantity: 4,
-            },
-            {
-                id: 7,
-                asset: tileAssets[7],
-                quantity: 4,
-            },
-            {
-                id: 8,
-                asset: tileAssets[8],
-                quantity: 4,
-            },
-            {
-                id: 9,
-                asset: tileAssets[9],
-                quantity: 4,
-            },
-            {
-                id: 10,
-                asset: tileAssets[10],
-                quantity: 4,
-            },
-            {
-                id: 11,
-                asset: tileAssets[11],
-                quantity: 4,
-            },
-            {
-                id: 12,
-                asset: tileAssets[12],
-                quantity: 4,
-            },
-            {
-                id: 13,
-                asset: tileAssets[13],
-                quantity: 4,
-            },
-            {
-                id: 14,
-                asset: tileAssets[14],
-                quantity: 4,
-            },
-            {
-                id: 15,
-                asset: tileAssets[15],
-                quantity: 4,
-            },
-            {
-                id: 16,
-                asset: tileAssets[16],
-                quantity: 4,
-            },
-            {
-                id: 17,
-                asset: tileAssets[17],
-                quantity: 4,
-            },
-            {
-                id: 18,
-                asset: tileAssets[18],
-                quantity: 4,
-            },
-        ];
+        this.items = [];
         this.visible = false;
         this.width = width - 200;
         this.height = height - 200;
@@ -106,6 +10,10 @@ export default class Inventory {
         this.itemSize = Math.floor(this.width / 9) - this.spacing;
         this.qtySize = 20;
         this.icons = 9;
+    }
+
+    update(playerInventory) {
+        this.items = playerInventory;
     }
 
     getItemBySlot(slot) {
@@ -158,11 +66,17 @@ export default class Inventory {
             }
             fill(255);
             rect(0, 0, this.itemSize, this.itemSize, 14);
-            if (!item) {
+            if (!item || item.id > this.tileAssets.length) {
                 fill(255);
                 rect(5, 5, this.itemSize - 10, this.itemSize - 10);
             } else {
-                image(item.asset, 5, 5, this.itemSize - 10, this.itemSize - 10);
+                image(
+                    this.tileAssets[item.id],
+                    5,
+                    5,
+                    this.itemSize - 10,
+                    this.itemSize - 10
+                );
                 fill(125);
                 ellipse(
                     this.itemSize - this.qtySize * 0.5,
