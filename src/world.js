@@ -1,5 +1,4 @@
-import p5 from './p5.min.js';
-
+/*global p5*/
 export default class World {
     constructor(xOffset, yOffset, tileWidth, tileHeight, tileAssets) {
         this.currXOffset = xOffset.copy();

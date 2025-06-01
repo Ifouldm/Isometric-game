@@ -1,9 +1,10 @@
 /* eslint-disable no-undef */
 import World from './world.js';
 import Inventory from './inventory.js';
+import Debug from './debug.js';
 import Toolbar from './toolbar.js';
 import { io } from './socket.io.js';
-import p5 from './p5.min.js';
+//import p5 from './p5.min.js';
 
 const socket = io();
 const tileAssets = [];
@@ -15,10 +16,10 @@ let camPos;
 let xOffset;
 let yOffset;
 let world;
-let debug = false;
 let zoom = 1;
 let inventory;
 let toolbar;
+let debug;
 
 // Socket connection
 socket.on('update', (update) => {
@@ -43,6 +44,7 @@ function setup() {
     yOffset = createVector(-tileWidth / 2, tileHeight / 2);
     inventory = new Inventory(tileAssets);
     toolbar = new Toolbar(80, inventory);
+    debug = new Debug();
     world = new World(xOffset, yOffset, tileWidth, tileHeight, tileAssets);
 }
 
@@ -68,40 +70,6 @@ function getTileAt(screenX, screenY) {
     };
 }
 
-function drawDebugInfo() {
-    push();
-    textSize(16);
-    fill(255);
-    text(
-        `x: ${mouseX} y: ${mouseY} pos: (${
-            mouseOver ? mouseOver.x + ',' + mouseOver.y : null
-        }), zoom: ${zoom} cam x: ${camPos.x}, cam y: ${camPos.y}`,
-        20,
-        20,
-        200,
-        200
-    );
-    pop();
-}
-
-function drawDebug() {
-    push();
-    // Grid
-    stroke(0);
-    for (let i = 0; i < width; i += 100) {
-        line(i, 0, i, height);
-    }
-    for (let i = 0; i < height; i += 100) {
-        line(0, i, width, i);
-    }
-    // Camera position
-    noStroke();
-    fill('yellow');
-    translate(camPos.x, camPos.y);
-    ellipse(0, 0, 10);
-    pop();
-}
-
 // eslint-disable-next-line no-unused-vars
 function mouseWheel(event) {
     let amount = event.delta > 0 ? -0.1 : 0.1;
@@ -120,9 +88,9 @@ function draw() {
         world.drawWorld(camPos.x, camPos.y, zoom, mouseOver, debug);
         toolbar.draw();
         keyDown();
-        if (debug) {
-            drawDebug();
-            drawDebugInfo();
+        if (debug.visible) {
+            debug.drawDebug();
+            debug.drawDebugInfo();
         }
     }
     if (inventory.visible) {
@@ -171,7 +139,7 @@ function mouseClicked() {
 // eslint-disable-next-line no-unused-vars
 function keyPressed() {
     // Show Debug
-    if (keyCode === 114) debug = !debug;
+    if (keyCode === 114) debug.toggleVisibility();
     // Toolbar section
     else if (keyCode === 219) toolbar.prevSelection();
     else if (keyCode === 221) toolbar.nextSelection();
